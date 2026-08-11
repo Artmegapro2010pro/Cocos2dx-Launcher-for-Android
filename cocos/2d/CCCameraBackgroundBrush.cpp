@@ -30,7 +30,7 @@
 #include "base/CCDirector.h"
 #include "renderer/CCRenderer.h"
 #include "renderer/CCRenderState.h"
-#include "platform/CCGL.h"  // для glClear, glClearColor
+#include "platform/CCGL.h"
 
 NS_CC_BEGIN
 
@@ -50,16 +50,14 @@ CameraBackgroundBrush* CameraBackgroundBrush::createNoneBrush()
     return ret;
 }
 
-// Изменяем возвращаемый тип на CameraBackgroundBrush*
 CameraBackgroundBrush* CameraBackgroundBrush::createColorBrush(const Color4F& color, float depth)
 {
-    return CameraBackgroundColorBrush::create(color, depth);
+    return (CameraBackgroundBrush*)CameraBackgroundColorBrush::create(color, depth);
 }
 
-// Изменяем возвращаемый тип на CameraBackgroundBrush*
 CameraBackgroundBrush* CameraBackgroundBrush::createDepthBrush(float depth)
 {
-    return CameraBackgroundDepthBrush::create(depth);
+    return (CameraBackgroundBrush*)CameraBackgroundDepthBrush::create(depth);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
