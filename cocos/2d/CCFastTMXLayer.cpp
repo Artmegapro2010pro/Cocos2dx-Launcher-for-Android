@@ -40,7 +40,6 @@ THE SOFTWARE.
 #include "base/ccTypes.h"
 #include "2d/CCFastTMXTiledMap.h"
 #include "2d/CCSprite.h"
-#include "2d/CCCamera.h"
 #include "renderer/CCTextureCache.h"
 #include "renderer/CCRenderer.h"
 #include "renderer/ccShaders.h"
