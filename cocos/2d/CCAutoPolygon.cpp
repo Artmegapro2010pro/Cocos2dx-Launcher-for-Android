@@ -27,7 +27,7 @@ THE SOFTWARE.
 ****************************************************************************/
 
 #include "2d/CCAutoPolygon.h"
-#include "poly2tri/poly2tri.h"
+#include "poly2tri.h"
 #include "base/CCDirector.h"
 #include "renderer/CCTextureCache.h"
 #include "clipper/clipper.hpp"
