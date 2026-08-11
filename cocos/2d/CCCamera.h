@@ -1,51 +1,39 @@
 /****************************************************************************
-Copyright (c) 2014-2016 Chukong Technologies Inc.
-Copyright (c) 2017-2019 Xiamen Yaji Software Co., Ltd.
-
-http://www.cocos2d-x.org
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-
- Code based GamePlay3D's Camera: http://gameplay3d.org
-
+ Copyright (c) 2013-2016 Chukong Technologies Inc.
+ Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+ 
+ http://www.cocos2d-x.org
+ 
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+ 
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+ 
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
  ****************************************************************************/
-#pragma once
+
+#ifndef __CCCAMERA_H__
+#define __CCCAMERA_H__
 
 #include "2d/CCNode.h"
-#include "3d/CCFrustum.h"
-#include "renderer/CCQuadCommand.h"
-#include "renderer/CCCustomCommand.h"
+#include "math/CCMath.h"
 
 NS_CC_BEGIN
 
-class Scene;
-class CameraBackgroundBrush;
+class Renderer;
 
-/**
- * Note: 
- * Scene creates a default camera. And the default camera mask of Node is 1, therefore it can be seen by the default camera.
- * During rendering the scene, it draws the objects seen by each camera in the added order except default camera. The default camera is the last one being drawn with.
- * It's usually a good idea to render 3D objects in a separate camera.
- * And set the 3d camera flag to CameraFlag::USER1 or anything else except DEFAULT. Dedicate The DEFAULT camera for UI, because it is rendered at last.
- * You can change the camera order to get different result when depth test is not enabled.
- * For each camera, transparent 3d sprite is rendered after opaque 3d sprite and other 2d objects.
- */
+/** Camera flag. */
 enum class CameraFlag
 {
     DEFAULT = 1,
@@ -58,260 +46,247 @@ enum class CameraFlag
     USER7 = 1 << 7,
     USER8 = 1 << 8,
 };
-/**
- * Defines a camera .
+
+/** 
+ @brief Camera is a base class for all cameras, used to determine what and how to render to the screen.
+ 
+ A Camera has projection matrix, view matrix and additional transform.
  */
-class CC_DLL Camera :public Node
+class CC_DLL Camera : public Node
 {
-    friend class Scene;
-    friend class Director;
-    friend class EventDispatcher;
 public:
-    /**
-    * The type of camera.
-    */
-    enum class Type
-    {
-        PERSPECTIVE = 1,
-        ORTHOGRAPHIC = 2
-    };
-public:
-    /**
-    * Creates a perspective camera.
-    *
-    * @param fieldOfView The field of view for the perspective camera (normally in the range of 40-60 degrees).
-    * @param aspectRatio The aspect ratio of the camera (normally the width of the viewport divided by the height of the viewport).
-    * @param nearPlane The near plane distance.
-    * @param farPlane The far plane distance.
-    */
-    static Camera* createPerspective(float fieldOfView, float aspectRatio, float nearPlane, float farPlane);
-    /**
-    * Creates an orthographic camera.
-    *
-    * @param zoomX The zoom factor along the X-axis of the orthographic projection (the width of the ortho projection).
-    * @param zoomY The zoom factor along the Y-axis of the orthographic projection (the height of the ortho projection).
-    * @param nearPlane The near plane distance.
-    * @param farPlane The far plane distance.
-    */
-    static Camera* createOrthographic(float zoomX, float zoomY, float nearPlane, float farPlane);
-
-    /** create default camera, the camera type depends on Director::getProjection, the depth of the default camera is 0 */
+    /** Creates a default camera.
+     @return An autoreleased Camera object.
+     */
     static Camera* create();
-
-    /**
-     * Get the visiting camera , the visiting camera shall be set on Scene::render
+    
+    /** Initializes camera with default values */
+    virtual bool init() override;
+    
+    /** Initializes camera with perspective projection.
+     @param fieldOfView The field of view for perspective projection.
+     @param aspectRatio The aspect ratio of camera.
+     @param nearPlane The near clipping plane distance.
+     @param farPlane The far clipping plane distance.
+     @return true if successful, otherwise false.
      */
-    static const Camera* getVisitingCamera();
-
-    static const Viewport& getDefaultViewport();
-    static void setDefaultViewport(const Viewport& vp);
-
-    /**
-     * Get the default camera of the current running scene.
+    bool initWithPerspective(float fieldOfView, float aspectRatio, float nearPlane, float farPlane);
+    
+    /** Initializes camera with orthographic projection.
+     @param zoomX The zoom factor for X axis.
+     @param zoomY The zoom factor for Y axis.
+     @param nearPlane The near clipping plane distance.
+     @param farPlane The far clipping plane distance.
+     @return true if successful, otherwise false.
      */
-    static Camera* getDefaultCamera();
-
-    /**
-    * Gets the type of camera.
-    *
-    * @return The camera type.
-    */
-    Camera::Type getType() const { return _type; }
-
-    /**get & set Camera flag*/
-    CameraFlag getCameraFlag() const { return _cameraFlag; }
-    void setCameraFlag(CameraFlag flag) { _cameraFlag = flag; }
-
-    /**
-    * Make Camera looks at target
-    *
-    * @param target The target camera is point at
-    * @param up The up vector, usually it's Y axis
-    */
-    virtual void lookAt(const Vec3& target, const Vec3& up = Vec3::UNIT_Y);
-
-    /**
-    * Gets the camera's projection matrix.
-    *
-    * @return The camera projection matrix.
-    */
-    const Mat4& getProjectionMatrix() const;
-    /**
-    * Gets the camera's view matrix.
-    *
-    * @return The camera view matrix.
-    */
-    const Mat4& getViewMatrix() const;
-
-    /**get view projection matrix*/
+    bool initWithOrthographic(float zoomX, float zoomY, float nearPlane, float farPlane);
+    
+    /** Initialize default camera */
+    void initDefault();
+    
+    /** Apply the camera */
+    void apply();
+    
+    /** Clear background with max depth */
+    void clearBackground();
+    
+    /** Gets the view matrix of camera.
+     @return The view matrix.
+     */
+    const Mat4& getViewMatrix() const { return _viewMatrix; }
+    
+    /** Gets the projection matrix of camera.
+     @return The projection matrix.
+     */
+    const Mat4& getProjectionMatrix() const { return _projectionMatrix; }
+    
+    /** Gets the view projection matrix of camera.
+     @return The view projection matrix.
+     */
     const Mat4& getViewProjectionMatrix() const;
     
-    /* convert the specified point in 3D world-space coordinates into the screen-space coordinates.
-     *
-     * Origin point at left top corner in screen-space.
-     * @param src The world-space position.
-     * @return The screen-space position.
+    /** Gets the projection type of camera.
+     @return The projection type.
      */
-    Vec2 project(const Vec3& src) const;
+    int getProjectionType() const { return _projectionType; }
     
-    /* convert the specified point in 3D world-space coordinates into the GL-screen-space coordinates.
-     *
-     * Origin point at left bottom corner in GL-screen-space.
-     * @param src The 3D world-space position.
-     * @return The GL-screen-space position.
+    /** Gets the camera flag.
+     @return The camera flag.
      */
-    Vec2 projectGL(const Vec3& src) const;
+    CameraFlag getCameraFlag() const { return _cameraFlag; }
     
-    /**
-     * Convert the specified point of screen-space coordinate into the 3D world-space coordinate.
-     *
-     * Origin point at left top corner in screen-space.
-     * @param src The screen-space position.
-     * @return The 3D world-space position.
+    /** Sets the camera flag.
+     @param flag The camera flag.
      */
-    Vec3 unproject(const Vec3& src) const;
+    void setCameraFlag(CameraFlag flag) { _cameraFlag = flag; }
     
-    /**
-     * Convert the specified point of GL-screen-space coordinate into the 3D world-space coordinate.
-     *
-     * Origin point at left bottom corner in GL-screen-space.
-     * @param src The GL-screen-space position.
-     * @return The 3D world-space position.
+    /** Gets the render order.
+     @return The render order.
      */
-    Vec3 unprojectGL(const Vec3& src) const;
+    int getRenderOrder() const { return _renderOrder; }
     
-    /**
-     * Convert the specified point of screen-space coordinate into the 3D world-space coordinate.
-     *
-     * Origin point at left top corner in screen-space.
-     * @param size The window size to use.
-     * @param src  The screen-space position.
-     * @param dst  The 3D world-space position.
+    /** Sets the render order.
+     @param order The render order.
      */
-    void unproject(const Size& size, const Vec3* src, Vec3* dst) const;
+    void setRenderOrder(int order) { _renderOrder = order; }
     
-    /**
-     * Convert the specified point of GL-screen-space coordinate into the 3D world-space coordinate.
-     *
-     * Origin point at left bottom corner in GL-screen-space.
-     * @param size The window size to use.
-     * @param src  The GL-screen-space position.
-     * @param dst  The 3D world-space position.
+    /** Gets the depth of the camera.
+     @return The camera depth.
      */
-    void unprojectGL(const Size& size, const Vec3* src, Vec3* dst) const;
-
-    /**
-     * Is this aabb visible in frustum
-     */
-    bool isVisibleInFrustum(const AABB* aabb) const;
+    float getDepth() const { return _depth; }
     
-    /**
-     * Get object depth towards camera
+    /** Sets the depth of the camera.
+     @param depth The camera depth.
      */
-    float getDepthInView(const Mat4& transform) const;
+    void setDepth(float depth) { _depth = depth; }
     
-    /**
-     * set depth, camera with larger depth is drawn on top of camera with smaller depth, the depth of camera with CameraFlag::DEFAULT is 0, user defined camera is -1 by default
+    /** Check if the camera is visible.
+     @return true if visible, false if not.
      */
-    void setDepth(int8_t depth);
+    bool isVisible() const { return _visible; }
     
-    /**
-     * get depth, camera with larger depth is drawn on top of camera with smaller depth, the depth of camera with CameraFlag::DEFAULT is 0, user defined camera is -1 by default
+    /** Set the visibility.
+     @param visible true if visible, false if not.
      */
-    int8_t getDepth() const { return _depth; }
+    void setVisible(bool visible) { _visible = visible; }
     
-    /**
-     get rendered order
+    /** Set the additional projection matrix.
+     @param mat The additional projection matrix.
      */
-    int getRenderOrder() const;
+    void setAdditionalProjection(const Mat4& mat) { _additionalProjection = mat; }
     
-    /**
-     * Get the frustum's far plane.
+    /** Gets the additional projection matrix.
+     @return The additional projection matrix.
      */
-    float getFarPlane() const { return _farPlane; }
-
-    /**
-     * Get the frustum's near plane.
-     */
-    float getNearPlane() const { return _nearPlane; }
+    const Mat4& getAdditionalProjection() const { return _additionalProjection; }
     
-    //override
-    virtual void onEnter() override;
-    virtual void onExit() override;
-
-    /**
-     Before rendering scene with this camera, the background need to be cleared. It clears the depth buffer with max depth by default. Use setBackgroundBrush to modify the default behavior
+    /** Set the additional transform matrix.
+     @param mat The additional transform matrix.
      */
-    void clearBackground();
-    /**
-     Apply the FBO, RenderTargets and viewport.
+    void setAdditionalTransform(const Mat4& mat) { _additionalTransform = mat; }
+    
+    /** Gets the additional transform matrix.
+     @return The additional transform matrix.
      */
-    void apply();
-
-    /**
-     * Whether or not the viewprojection matrix was updated since the last frame.
-     * @return True if the viewprojection matrix was updated since the last frame.
+    const Mat4& getAdditionalTransform() const { return _additionalTransform; }
+    
+    /** Check if the camera has depth test.
+     @return true if depth test is enabled, false if not.
      */
-    bool isViewProjectionUpdated() const {return _viewProjectionUpdated;}
-
-    /**
-     * set the background brush. See CameraBackgroundBrush for more information.
-     * @param clearBrush Brush used to clear the background
+    bool getDepthTest() const { return _depthTest; }
+    
+    /** Set the depth test.
+     @param depthTest true to enable depth test, false to disable.
      */
-    void setBackgroundBrush(CameraBackgroundBrush* clearBrush);
-
-    /**
-     * Get clear brush
+    void setDepthTest(bool depthTest) { _depthTest = depthTest; }
+    
+    /** Check if the camera has clear color.
+     @return true if clear color is enabled, false if not.
      */
-    CameraBackgroundBrush* getBackgroundBrush() const { return _clearBrush; }
-
-    virtual void visit(Renderer* renderer, const Mat4 &parentTransform, uint32_t parentFlags) override;
-
-    bool isBrushValid();
-
+    bool getClearColor() const { return _clearColor; }
+    
+    /** Set the clear color.
+     @param clearColor true to enable clear color, false to disable.
+     */
+    void setClearColor(bool clearColor) { _clearColor = clearColor; }
+    
+    /** Gets the clear color.
+     @return The clear color.
+     */
+    const Color4F& getClearColorValue() const { return _clearColorValue; }
+    
+    /** Sets the clear color.
+     @param clearColor The clear color.
+     */
+    void setClearColorValue(const Color4F& clearColor) { _clearColorValue = clearColor; }
+    
+    /** Check if the camera has clear depth.
+     @return true if clear depth is enabled, false if not.
+     */
+    bool getClearDepth() const { return _clearDepth; }
+    
+    /** Set the clear depth.
+     @param clearDepth true to enable clear depth, false to disable.
+     */
+    void setClearDepth(bool clearDepth) { _clearDepth = clearDepth; }
+    
+    /** Gets the clear depth.
+     @return The clear depth.
+     */
+    float getClearDepthValue() const { return _clearDepthValue; }
+    
+    /** Sets the clear depth.
+     @param clearDepth The clear depth.
+     */
+    void setClearDepthValue(float clearDepth) { _clearDepthValue = clearDepth; }
+    
+    /** Check if the camera has clear stencil.
+     @return true if clear stencil is enabled, false if not.
+     */
+    bool getClearStencil() const { return _clearStencil; }
+    
+    /** Set the clear stencil.
+     @param clearStencil true to enable clear stencil, false to disable.
+     */
+    void setClearStencil(bool clearStencil) { _clearStencil = clearStencil; }
+    
+    /** Gets the clear stencil.
+     @return The clear stencil.
+     */
+    int getClearStencilValue() const { return _clearStencilValue; }
+    
+    /** Sets the clear stencil.
+     @param clearStencil The clear stencil.
+     */
+    void setClearStencilValue(int clearStencil) { _clearStencilValue = clearStencil; }
+    
+    /** Gets the camera type.
+     @return The camera type.
+     */
+    int getCameraType() const { return _cameraType; }
+    
+public:
+    static Camera* _visitingCamera;
+    
 CC_CONSTRUCTOR_ACCESS:
     Camera();
-    ~Camera();
-
-    /**
-     * Set the scene,this method shall not be invoke manually
-     */
-    void setScene(Scene* scene);
-
-    /**set additional matrix for the projection matrix, it multiplies mat to projection matrix when called, used by WP8*/
-    void setAdditionalProjection(const Mat4& mat);
-
-    /** init camera */
-    bool initDefault();
-    bool initPerspective(float fieldOfView, float aspectRatio, float nearPlane, float farPlane);
-    bool initOrthographic(float zoomX, float zoomY, float nearPlane, float farPlane);
-    void applyViewport();
-
+    virtual ~Camera();
+    
 protected:
-    static Camera* _visitingCamera;
-    static Viewport _defaultViewport;
-
-    Scene* _scene = nullptr; //Scene camera belongs to
-    Mat4 _projection;
-    mutable Mat4 _view;
-    mutable Mat4 _viewInv;
-    mutable Mat4 _viewProjection;
-
-    Vec3 _up;
-    Camera::Type _type;
-    float _fieldOfView = 0.f;
-    float _zoom[2] = {0.f};
-    float _aspectRatio = 0.f;
-    float _nearPlane = 0.f;
-    float _farPlane = 0.f;
-    mutable bool  _viewProjectionDirty = true;
-    bool _viewProjectionUpdated = false; //Whether or not the viewprojection matrix was updated since the last frame.
-    CameraFlag _cameraFlag = CameraFlag::DEFAULT; // camera flag
-    mutable Frustum _frustum;   // camera frustum
-    mutable bool _frustumDirty = true;
-    int8_t  _depth = -1;                 //camera depth, the depth of camera with CameraFlag::DEFAULT flag is 0 by default, a camera with larger depth is drawn on top of camera with smaller depth
-
-    CameraBackgroundBrush* _clearBrush = nullptr; //brush used to clear the back ground
+    enum
+    {
+        CAMERA_TYPE_DEFAULT = 0,
+        CAMERA_TYPE_PERSPECTIVE = 1,
+        CAMERA_TYPE_ORTHOGRAPHIC = 2,
+    };
+    
+    void updateMatrix();
+    
+    Mat4 _viewMatrix;                // The view matrix.
+    Mat4 _projectionMatrix;          // The projection matrix.
+    Mat4 _viewProjectionMatrix;      // The view projection matrix.
+    Mat4 _additionalProjection;      // Additional projection matrix.
+    Mat4 _additionalTransform;       // Additional transform.
+    int _projectionType;
+    
+    int _renderOrder;
+    float _depth;
+    CameraFlag _cameraFlag;
+    bool _visible;
+    bool _depthTest;
+    bool _clearColor;
+    bool _clearDepth;
+    bool _clearStencil;
+    Color4F _clearColorValue;
+    float _clearDepthValue;
+    int _clearStencilValue;
+    int _cameraType;
+    bool _dirty;
+    
+private:
+    CC_DISALLOW_COPY_AND_ASSIGN(Camera);
 };
 
 NS_CC_END
+
+#endif // __CCCAMERA_H__
