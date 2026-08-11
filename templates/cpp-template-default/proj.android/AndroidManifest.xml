@@ -4,7 +4,6 @@
 
     <application
         android:label="Cocos Launcher"
-        android:icon="@mipmap/ic_launcher">
         <activity
             android:name="org.cocos2dx.cpp.AppActivity"
             android:screenOrientation="landscape"
