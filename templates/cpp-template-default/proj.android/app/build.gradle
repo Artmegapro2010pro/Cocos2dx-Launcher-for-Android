@@ -25,7 +25,7 @@ android {
     }
     externalNativeBuild {
         cmake {
-            path "${rootDir}/../../cocos/CMakeLists.txt"
+            path "/home/runner/work/Cocos2dx-Launcher-for-Android/Cocos2dx-Launcher-for-Android/cocos/CMakeLists.txt"
         }
     }
     sourceSets {
