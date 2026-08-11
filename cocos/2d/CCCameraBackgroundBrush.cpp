@@ -30,8 +30,7 @@
 #include "base/CCDirector.h"
 #include "renderer/CCRenderer.h"
 #include "renderer/CCRenderState.h"
-#include "renderer/ccShaders.h"
-#include "math/CCMath.h"
+#include "platform/CCGL.h"  // для glClear, glClearColor
 
 NS_CC_BEGIN
 
@@ -97,10 +96,8 @@ bool CameraBackgroundDepthBrush::init()
 
 void CameraBackgroundDepthBrush::drawBackground(Camera* /*camera*/)
 {
-    auto renderer = Director::getInstance()->getRenderer();
-    renderer->setDepthTestEnabled(true);
-    renderer->setDepthWriteEnabled(true);
-    renderer->clear(ClearFlag::DEPTH);
+    glClearDepth(_depth);
+    glClear(GL_DEPTH_BUFFER_BIT);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -121,12 +118,9 @@ bool CameraBackgroundColorBrush::init()
 
 void CameraBackgroundColorBrush::drawBackground(Camera* camera)
 {
-    auto renderer = Director::getInstance()->getRenderer();
-    renderer->setClearColorValue(_color);
-    renderer->setDepthTestEnabled(true);
-    renderer->setDepthWriteEnabled(true);
-    unsigned int flags = (unsigned int)ClearFlag::COLOR | (unsigned int)ClearFlag::DEPTH;
-    renderer->clear(flags);
+    glClearColor(_color.r, _color.g, _color.b, _color.a);
+    glClearDepth(1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void CameraBackgroundColorBrush::setColor(const Color4F& color)
