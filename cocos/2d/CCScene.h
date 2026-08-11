@@ -45,9 +45,6 @@ class PhysicsWorld;
 #if CC_USE_3D_PHYSICS && CC_ENABLE_BULLET_INTEGRATION
 class Physics3DWorld;
 #endif
-#if CC_USE_NAVMESH
-class NavMesh;
-#endif
 
 /**
  * @addtogroup _2d
@@ -192,23 +189,7 @@ protected:
 #endif
 #endif // (CC_USE_PHYSICS || CC_USE_3D_PHYSICS)
     
-#if CC_USE_NAVMESH
-public:
-    /** set navigation mesh */
-    void setNavMesh(NavMesh* navMesh);
-    /** get navigation mesh */
-    NavMesh* getNavMesh() const { return _navMesh; }
-    /**
-    * Set NavMesh debug draw camera.
-    */
-    void setNavMeshDebugCamera(Camera *camera);
-
-protected:
-    NavMesh*        _navMesh = nullptr;
-    Camera *        _navMeshDebugCamera = nullptr;
-#endif
-    
-#if (CC_USE_PHYSICS || (CC_USE_3D_PHYSICS && CC_ENABLE_BULLET_INTEGRATION) || CC_USE_NAVMESH)
+#if (CC_USE_PHYSICS || (CC_USE_3D_PHYSICS && CC_ENABLE_BULLET_INTEGRATION))
 public:
     void stepPhysicsAndNavigation(float deltaTime);
 #endif
