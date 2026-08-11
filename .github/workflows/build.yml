@@ -26,11 +26,11 @@ jobs:
 
       - name: Build launcher
         run: |
-          cd launcher
+          cd templates/cpp-template-default/proj.android
           ./gradlew assembleRelease
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: launcher-apk
-          path: launcher/app/build/outputs/apk/release/*.apk
+          path: templates/cpp-template-default/proj.android/app/build/outputs/apk/release/*.apk
