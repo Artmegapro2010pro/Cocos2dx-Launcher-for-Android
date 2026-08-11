@@ -14,15 +14,13 @@ android {
             minifyEnabled false
         }
     }
-}
-
-dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-    android {
-    ...
     sourceSets {
         main {
             manifest.srcFile '../AndroidManifest.xml'
         }
     }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
 }
