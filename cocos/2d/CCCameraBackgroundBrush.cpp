@@ -50,12 +50,14 @@ CameraBackgroundBrush* CameraBackgroundBrush::createNoneBrush()
     return ret;
 }
 
-CameraBackgroundColorBrush* CameraBackgroundBrush::createColorBrush(const Color4F& color, float depth)
+// Изменяем возвращаемый тип на CameraBackgroundBrush*
+CameraBackgroundBrush* CameraBackgroundBrush::createColorBrush(const Color4F& color, float depth)
 {
     return CameraBackgroundColorBrush::create(color, depth);
 }
 
-CameraBackgroundDepthBrush* CameraBackgroundBrush::createDepthBrush(float depth)
+// Изменяем возвращаемый тип на CameraBackgroundBrush*
+CameraBackgroundBrush* CameraBackgroundBrush::createDepthBrush(float depth)
 {
     return CameraBackgroundDepthBrush::create(depth);
 }
