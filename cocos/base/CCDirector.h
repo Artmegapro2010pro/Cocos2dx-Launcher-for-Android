@@ -57,7 +57,6 @@ class EventCustom;
 class EventListenerCustom;
 class TextureCache;
 class Renderer;
-class Camera;
 
 class Console;
 
