@@ -25,7 +25,6 @@
  ****************************************************************************/
 #include "2d/CCCameraBackgroundBrush.h"
 #include "base/ccTypes.h"
-#include "2d/CCCamera.h"
 #include "base/ccMacros.h"
 #include "base/CCDirector.h"
 #include "renderer/CCRenderer.h"
