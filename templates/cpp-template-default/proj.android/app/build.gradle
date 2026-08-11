@@ -18,4 +18,12 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    android {
+    ...
+    sourceSets {
+        main {
+            manifest.srcFile '../AndroidManifest.xml'
+        }
+    }
+}
 }
