@@ -43,9 +43,6 @@ THE SOFTWARE.
 #include "physics3d/CCPhysics3DComponent.h"
 #endif
 
-#if CC_USE_NAVMESH
-#endif
-
 NS_CC_BEGIN
 
 Scene::Scene()
@@ -70,9 +67,7 @@ Scene::~Scene()
     CC_SAFE_RELEASE(_physics3DWorld);
     CC_SAFE_RELEASE(_physics3dDebugCamera);
 #endif
-#if CC_USE_NAVMESH
-    CC_SAFE_RELEASE(_navMesh);
-#endif
+
     Director::getInstance()->getEventDispatcher()->removeEventListener(_event);
     CC_SAFE_RELEASE(_event);
     
@@ -88,18 +83,6 @@ Scene::~Scene()
     }
 #endif // CC_ENABLE_GC_FOR_NATIVE_OBJECTS
 }
-
-#if CC_USE_NAVMESH
-void Scene::setNavMesh(NavMesh* navMesh)
-{
-    if (_navMesh != navMesh)
-    {
-        CC_SAFE_RETAIN(navMesh);
-        CC_SAFE_RELEASE(_navMesh);
-        _navMesh = navMesh;
-    }
-}
-#endif
 
 bool Scene::init()
 {
@@ -188,13 +171,6 @@ void Scene::render(Renderer* renderer, const Mat4& eyeTransform, const Mat4* eye
             defaultCamera = Camera::_visitingCamera;
         }
 
-        // There are two ways to modify the "default camera" with the eye Transform:
-        // a) modify the "nodeToParentTransform" matrix
-        // b) modify the "additional transform" matrix
-        // both alternatives are correct, if the user manually modifies the camera with a camera->setPosition()
-        // then the "nodeToParent transform" will be lost.
-        // And it is important that the change is "permanent", because the matrix might be used for calculate
-        // culling and other stuff.
         if (eyeProjection)
             camera->setAdditionalProjection(*eyeProjection * camera->getProjectionMatrix().getInversed());
 
@@ -207,20 +183,10 @@ void Scene::render(Renderer* renderer, const Mat4& eyeTransform, const Mat4* eye
         camera->clearBackground();
         //visit the scene
         visit(renderer, transform, 0);
-#if CC_USE_NAVMESH
-        if (_navMesh && _navMeshDebugCamera == camera)
-        {
-            _navMesh->debugDraw(renderer);
-        }
-#endif
 
         renderer->render();
 
         director->popMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_PROJECTION);
-
-        // we shouldn't restore the transform matrix since it could be used
-        // from "update" or other parts of the game to calculate culling or something else.
-        //        camera->setNodeToParentTransform(eyeCopy);
     }
 
 #if CC_USE_3D_PHYSICS && CC_ENABLE_BULLET_INTEGRATION
@@ -271,16 +237,6 @@ void Scene::setPhysics3DDebugCamera(Camera* camera)
 }
 #endif
 
-#if CC_USE_NAVMESH
-void Scene::setNavMeshDebugCamera(Camera *camera)
-{
-    CC_SAFE_RETAIN(camera);
-    CC_SAFE_RELEASE(_navMeshDebugCamera);
-    _navMeshDebugCamera = camera;
-}
-
-#endif
-
 #if (CC_USE_PHYSICS || (CC_USE_3D_PHYSICS && CC_ENABLE_BULLET_INTEGRATION))
 
 Scene* Scene::createWithPhysics()
@@ -326,8 +282,8 @@ bool Scene::initWithPhysics()
 
 #endif
 
-#if (CC_USE_PHYSICS || (CC_USE_3D_PHYSICS && CC_ENABLE_BULLET_INTEGRATION) || CC_USE_NAVMESH)
-void Scene::stepPhysicsAndNavigation(float deltaTime)
+#if (CC_USE_PHYSICS || (CC_USE_3D_PHYSICS && CC_ENABLE_BULLET_INTEGRATION))
+void Scene::stepPhysics(float deltaTime)
 {
 #if CC_USE_PHYSICS
     if (_physicsWorld && _physicsWorld->isAutoStep())
@@ -338,12 +294,6 @@ void Scene::stepPhysicsAndNavigation(float deltaTime)
     if (_physics3DWorld)
     {
         _physics3DWorld->stepSimulate(deltaTime);
-    }
-#endif
-#if CC_USE_NAVMESH
-    if (_navMesh)
-    {
-        _navMesh->update(deltaTime);
     }
 #endif
 }
