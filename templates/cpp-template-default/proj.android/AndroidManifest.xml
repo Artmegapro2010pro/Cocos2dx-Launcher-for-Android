@@ -2,8 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.artem.launcher">
 
-    <application
-        android:label="Cocos Launcher"
+    <application android:label="Cocos Launcher">
         <activity
             android:name="org.cocos2dx.cpp.AppActivity"
             android:screenOrientation="landscape"
