@@ -1,0 +1,12 @@
+<manifest package="com.artem.launcher">
+    <application android:label="Cocos Launcher">
+        <activity android:name="org.cocos2dx.cpp.AppActivity"
+                  android:screenOrientation="landscape"
+                  android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
