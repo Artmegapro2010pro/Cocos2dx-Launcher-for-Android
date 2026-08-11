@@ -44,7 +44,6 @@ THE SOFTWARE.
 #endif
 
 #if CC_USE_NAVMESH
-#include "navmesh/CCNavMesh.h"
 #endif
 
 NS_CC_BEGIN
