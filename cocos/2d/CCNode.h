@@ -59,7 +59,6 @@ class Scene;
 class Renderer;
 class Director;
 class Material;
-class Camera;
 class PhysicsBody;
 
 namespace backend{
