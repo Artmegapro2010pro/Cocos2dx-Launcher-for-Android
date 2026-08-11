@@ -34,7 +34,6 @@ THE SOFTWARE.
 
 NS_CC_BEGIN
 
-class Camera;
 class BaseLight;
 class Renderer;
 class EventListenerCustom;
@@ -129,7 +128,6 @@ protected:
     friend class Node;
     friend class ProtectedNode;
     friend class SpriteBatchNode;
-    friend class Camera;
     friend class BaseLight;
     friend class Renderer;
     
