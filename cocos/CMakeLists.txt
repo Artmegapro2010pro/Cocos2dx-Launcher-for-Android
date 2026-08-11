@@ -3,9 +3,8 @@ cmake_minimum_required(VERSION 3.6)
 set(COCOS2DX_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 
 file(GLOB_RECURSE COCOS_SOURCE "*.cpp" "*.c" "*.mm")
-file(GLOB_RECURSE COCOS_HEADER "*.h" "*.hpp")
 
-add_library(cocos2d SHARED ${COCOS_SOURCE} ${COCOS_HEADER})
+add_library(cocos2d SHARED ${COCOS_SOURCE})
 
 target_include_directories(cocos2d
     PUBLIC ${COCOS2DX_ROOT_PATH}
