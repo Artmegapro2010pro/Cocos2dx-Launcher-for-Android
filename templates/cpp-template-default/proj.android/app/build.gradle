@@ -8,15 +8,30 @@ android {
         targetSdkVersion 33
         versionCode 1
         versionName "1.0"
+        ndk {
+            abiFilters "armeabi-v7a", "arm64-v8a"
+        }
+        externalNativeBuild {
+            cmake {
+                arguments "-DANDROID_STL=c++_shared"
+                cppFlags "-std=c++11 -frtti -fexceptions"
+            }
+        }
     }
     buildTypes {
         release {
             minifyEnabled false
         }
     }
+    externalNativeBuild {
+        cmake {
+            path "../../../cocos/CMakeLists.txt"
+        }
+    }
     sourceSets {
         main {
             manifest.srcFile '../AndroidManifest.xml'
+            jniLibs.srcDirs = ['libs']
         }
     }
 }
