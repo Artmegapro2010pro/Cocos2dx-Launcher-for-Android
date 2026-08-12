@@ -7,6 +7,7 @@ add_definitions(-DANDROID)
 # Отключаем 3D и навигацию (они нам не нужны)
 add_definitions(-DCC_USE_3D_PHYSICS=0)
 add_definitions(-DCC_USE_NAVMESH=0)
+add_definitions(-DCamera=void)
 
 # Ищем только .cpp, .c, .mm файлы
 file(GLOB_RECURSE COCOS_SOURCE "*.cpp" "*.c" "*.mm")
