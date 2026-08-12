@@ -4,10 +4,9 @@ set(COCOS2DX_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_definitions(-DANDROID)
 
-# Отключаем всё, что вызывает ошибки
+# Отключаем 3D и навигацию (они нам не нужны)
 add_definitions(-DCC_USE_3D_PHYSICS=0)
 add_definitions(-DCC_USE_NAVMESH=0)
-add_definitions(-DCamera=void)
 
 # Ищем только .cpp, .c, .mm файлы
 file(GLOB_RECURSE COCOS_SOURCE "*.cpp" "*.c" "*.mm")
@@ -29,6 +28,12 @@ list(REMOVE_ITEM COCOS_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/3d/CCMesh.h")
 list(REMOVE_ITEM COCOS_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/navmesh/CCNavMesh.cpp")
 list(REMOVE_ITEM COCOS_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/navmesh/CCNavMesh.h")
 list(REMOVE_ITEM COCOS_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/audio/linux/AudioEngine-linux.cpp")
+
+# Убираем файлы с камерой (из-за них тоже ошибки)
+list(REMOVE_ITEM COCOS_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/2d/CCCamera.cpp")
+list(REMOVE_ITEM COCOS_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/2d/CCCamera.h")
+list(REMOVE_ITEM COCOS_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/2d/CCCameraBackgroundBrush.cpp")
+list(REMOVE_ITEM COCOS_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/2d/CCCameraBackgroundBrush.h")
 
 add_library(cocos2d SHARED ${COCOS_SOURCE})
 
